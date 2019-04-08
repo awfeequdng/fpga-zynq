@@ -1,0 +1,6 @@
+BOARD = ax7021
+UBOOT_CONFIG = $(BOARD)
+PART = xc7z020clg484-2
+CONFIG = ZynqMediumFPGAConfig
+
+include ../common/Makefrag
