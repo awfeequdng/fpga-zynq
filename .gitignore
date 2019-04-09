@@ -2,12 +2,23 @@
 *.jou
 *.Xil
 *.swp
+*.str
 
 common/build
 common/target
 common/project/target
 common/lib
 common/Makefrag.pkgs
+
+ax7021/ax7021_rocketchip_*
+ax7021/src/tcl/ax7021_rocketchip_*.tcl
+ax7021/src/tcl/make_bitstream_*.tcl
+#ax7021/src/verilog/rocketchip_wrapper.v
+ax7021/src/verilog/Top.*.v
+ax7021/src/verilog/AsyncResetReg.v
+ax7021/src/verilog/plusarg_reader.v
+ax7021/deliver_output
+ax7021/soft_build
 
 zedboard/zedboard_rocketchip_*
 zedboard/src/tcl/zedboard_rocketchip_*.tcl

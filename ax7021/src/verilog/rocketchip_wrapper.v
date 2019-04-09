@@ -23,7 +23,16 @@ module rocketchip_wrapper
     FIXED_IO_ps_clk,
     FIXED_IO_ps_porb,
     FIXED_IO_ps_srstb,
-    clk);
+    clk,
+    mdio_mdc,
+    mdio_mdio_io,
+    phy_rst_n,
+    rgmii_rd,
+    rgmii_rx_ctl,
+    rgmii_rxc,
+    rgmii_td,
+    rgmii_tx_ctl,
+    rgmii_txc);
 
   inout [14:0]DDR_addr;
   inout [2:0]DDR_ba;
@@ -48,8 +57,17 @@ module rocketchip_wrapper
   inout FIXED_IO_ps_porb;
   inout FIXED_IO_ps_srstb;
 
-
   input clk;
+
+  output mdio_mdc;
+  inout mdio_mdio_io;
+  output [0:0]phy_rst_n;
+  input [3:0]rgmii_rd;
+  input rgmii_rx_ctl;
+  input rgmii_rxc;
+  output [3:0]rgmii_td;
+  output rgmii_tx_ctl;
+  output rgmii_txc;
 
   wire FCLK_RESET0_N;
   
@@ -122,10 +140,24 @@ module rocketchip_wrapper
   wire [5:0]  S_AXI_rid;
   wire [63:0] S_AXI_rdata;
   wire S_AXI_rlast;
+  
 
   wire reset, reset_cpu;
   wire host_clk, sys_clk;
   wire gclk_i, gclk_fbout, host_clk_i, mmcm_locked;
+
+  wire mdio_mdio_i;
+  wire mdio_mdio_o;
+  wire mdio_mdio_t;
+
+  //assign mdio_mdio_i = mdio_mdio_io;
+  //assign mdio_mdio_io = mdio_mdio_t ? 1'bz : mdio_mdio_out;
+
+  //assign mdio_mdio_io = mdio_mdio_t ? mdio_mdio_i : 1'bz;
+  //assign mdio_mdio_o = mdio_mdio_io;
+
+  assign mdio_mdio_io = mdio_mdio_t ? mdio_mdio_o : 1'bz;
+  assign mdio_mdio_i = mdio_mdio_io;
 
   system system_i
        (.DDR_addr(DDR_addr),
@@ -241,6 +273,17 @@ module rocketchip_wrapper
         .S_AXI_wstrb(S_AXI_wstrb),
         .S_AXI_wvalid(S_AXI_wvalid),
         .ext_clk_in(host_clk),
+        .mdio_mdc(mdio_mdc),
+        .mdio_mdio_i(mdio_mdio_i),
+        .mdio_mdio_o(mdio_mdio_o),
+        .mdio_mdio_t(mdio_mdio_t),
+        .phy_rst_n(phy_rst_n),
+        .rgmii_rd(rgmii_rd),
+        .rgmii_rx_ctl(rgmii_rx_ctl),
+        .rgmii_rxc(rgmii_rxc),
+        .rgmii_td(rgmii_td),
+        .rgmii_tx_ctl(rgmii_tx_ctl),
+        .rgmii_txc(rgmii_txc),
         .sys_clk(sys_clk)
         );
 
