@@ -23,12 +23,7 @@ module rocketchip_wrapper
     FIXED_IO_ps_clk,
     FIXED_IO_ps_porb,
     FIXED_IO_ps_srstb,
-`ifndef differential_clock
     clk);
-`else
-    SYSCLK_P,
-    SYSCLK_N);
-`endif
 
   inout [14:0]DDR_addr;
   inout [2:0]DDR_ba;
@@ -53,12 +48,8 @@ module rocketchip_wrapper
   inout FIXED_IO_ps_porb;
   inout FIXED_IO_ps_srstb;
 
-`ifndef differential_clock
+
   input clk;
-`else
-  input SYSCLK_P;
-  input SYSCLK_N;
-`endif
 
   wire FCLK_RESET0_N;
   
@@ -133,7 +124,7 @@ module rocketchip_wrapper
   wire S_AXI_rlast;
 
   wire reset, reset_cpu;
-  wire host_clk;
+  wire host_clk, sys_clk;
   wire gclk_i, gclk_fbout, host_clk_i, mmcm_locked;
 
   system system_i
@@ -249,7 +240,8 @@ module rocketchip_wrapper
         .S_AXI_wready(S_AXI_wready),
         .S_AXI_wstrb(S_AXI_wstrb),
         .S_AXI_wvalid(S_AXI_wvalid),
-        .ext_clk_in(host_clk)
+        .ext_clk_in(host_clk),
+        .sys_clk(sys_clk)
         );
 
   assign reset = !FCLK_RESET0_N || !mmcm_locked;
@@ -345,12 +337,10 @@ module rocketchip_wrapper
    .io_mem_axi_r_bits_data (S_AXI_rdata),
    .io_mem_axi_r_bits_last (S_AXI_rlast)
   );
-`ifndef differential_clock
+
   IBUFG ibufg_gclk (.I(clk), .O(gclk_i));
-`else
-  IBUFDS #(.DIFF_TERM("TRUE"), .IBUF_LOW_PWR("TRUE"), .IOSTANDARD("DEFAULT")) clk_ibufds (.O(gclk_i), .I(SYSCLK_P), .IB(SYSCLK_N));
-`endif
   BUFG  bufg_host_clk (.I(host_clk_i), .O(host_clk));
+  BUFG  bufg_sys_clk (.I(gclk_i), .O(sys_clk));
 
   MMCME2_BASE #(
     .BANDWIDTH("OPTIMIZED"),

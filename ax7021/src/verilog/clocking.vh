@@ -23,9 +23,9 @@ hw/src/constrs/pin_constraints.xdc
 `define _clocking_vh_
 
 
-`define ZYNQ_CLK_PERIOD 10.0
+`define ZYNQ_CLK_PERIOD 20.0
 
-`define RC_CLK_MULT     10.0
+`define RC_CLK_MULT     20.0
 
 `define RC_CLK_DIVIDE   40.0
 
