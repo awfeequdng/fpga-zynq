@@ -23,7 +23,7 @@ module rocketchip_wrapper
     FIXED_IO_ps_clk,
     FIXED_IO_ps_porb,
     FIXED_IO_ps_srstb,
-    clk,
+    clk, // 50MHz
     mdio_mdc,
     mdio_mdio_io,
     phy_rst_n,
@@ -149,12 +149,6 @@ module rocketchip_wrapper
   wire mdio_mdio_i;
   wire mdio_mdio_o;
   wire mdio_mdio_t;
-
-  //assign mdio_mdio_i = mdio_mdio_io;
-  //assign mdio_mdio_io = mdio_mdio_t ? 1'bz : mdio_mdio_out;
-
-  //assign mdio_mdio_io = mdio_mdio_t ? mdio_mdio_i : 1'bz;
-  //assign mdio_mdio_o = mdio_mdio_io;
 
   assign mdio_mdio_io = mdio_mdio_t ? mdio_mdio_o : 1'bz;
   assign mdio_mdio_i = mdio_mdio_io;
@@ -382,8 +376,8 @@ module rocketchip_wrapper
   );
 
   IBUFG ibufg_gclk (.I(clk), .O(gclk_i));
-  BUFG  bufg_host_clk (.I(host_clk_i), .O(host_clk));
-  BUFG  bufg_sys_clk (.I(gclk_i), .O(sys_clk));
+  BUFG  bufg_host_clk (.I(host_clk_i), .O(host_clk)); // 25MHz
+  BUFG  bufg_sys_clk (.I(gclk_i), .O(sys_clk)); // 50MHz
 
   MMCME2_BASE #(
     .BANDWIDTH("OPTIMIZED"),
