@@ -19,6 +19,7 @@ ax7021/src/verilog/AsyncResetReg.v
 ax7021/src/verilog/plusarg_reader.v
 ax7021/deliver_output
 ax7021/soft_build
+ax7021/NA
 
 zedboard/zedboard_rocketchip_*
 zedboard/src/tcl/zedboard_rocketchip_*.tcl
@@ -29,6 +30,7 @@ zedboard/src/verilog/AsyncResetReg.v
 zedboard/src/verilog/plusarg_reader.v
 zedboard/deliver_output
 zedboard/soft_build
+zedboard/NA
 
 zybo/zybo_rocketchip_*
 zybo/src/tcl/zybo_rocketchip_*.tcl
