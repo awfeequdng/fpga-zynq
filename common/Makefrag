@@ -129,10 +129,10 @@ arm-linux: arm-uboot # must first build uboot because we need tools
 	# compile kernel
 	git submodule update --init $(arm_linux_dir)
 	# no make clean included here since one copy of linux should work on all boards
-	cd $(arm_linux_dir) && make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- xilinx_zynq_defconfig 
-	cd $(arm_linux_dir) && make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- -j$(JOBS)
+	cd $(arm_linux_dir) && make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- xilinx_zynq_defconfig 
+	cd $(arm_linux_dir) && make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j$(JOBS)
 	# convert zImage to uImage
-	cd $(arm_linux_dir) && export PATH=$(uboot_dir)/tools:$$PATH && make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- UIMAGE_LOADADDR=0x8000 uImage
+	cd $(arm_linux_dir) && export PATH=$(uboot_dir)/tools:$$PATH && make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- UIMAGE_LOADADDR=0x8000 uImage
 	mkdir -p $(output_delivery)
 	cp $(arm_linux_dir)/arch/arm/boot/uImage $(output_delivery)/
 
@@ -146,8 +146,8 @@ arm-uboot:
 	fi;
 	cp soft_config/zynq_$(UBOOT_CONFIG).h $(uboot_dir)/include/configs/
 	# actually build
-	cd $(uboot_dir) && make CROSS_COMPILE=arm-xilinx-linux-gnueabi- zynq_$(UBOOT_CONFIG)_config
-	cd $(uboot_dir) && make CROSS_COMPILE=arm-xilinx-linux-gnueabi- -j$(JOBS)
+	cd $(uboot_dir) && make CROSS_COMPILE=arm-linux-gnueabihf- zynq_$(UBOOT_CONFIG)_config
+	cd $(uboot_dir) && make CROSS_COMPILE=arm-linux-gnueabihf- -j$(JOBS)
 	mkdir -p $(soft_build_dir)
 	cp $(uboot_dir)/u-boot $(soft_build_dir)/u-boot.elf
 
@@ -216,7 +216,7 @@ fesvr-hdrs = \
 
 fesvr-lib = $(common_build)/libfesvr.so
 
-CXX_FPGA      = arm-xilinx-linux-gnueabi-g++
+CXX_FPGA      = arm-linux-gnueabihf-g++
 CXXFLAGS_FPGA = -O2 -std=c++11 -Wall -L$(common_build) -lfesvr \
                 -Wl,-rpath,/usr/local/lib \
 		-I $(common)/csrc -I $(testchipip)/csrc \
@@ -227,7 +227,7 @@ $(fesvr-lib):
 	mkdir -p $(common_build)
 	cd $(common_build) && \
 	$(ROCKET_DIR)/riscv-tools/riscv-fesvr/configure \
-		--host=arm-xilinx-linux-gnueabi && \
+		--host=arm-linux-gnueabihf && \
 	make libfesvr.so
 
 $(common_build)/$(fesvr-main): $(fesvr-lib) $(fesvr-srcs) $(fesvr-hdrs)
