@@ -24,15 +24,15 @@ module rocketchip_wrapper
     FIXED_IO_ps_porb,
     FIXED_IO_ps_srstb,
     clk, // 50MHz
-    mdio_mdc,
-    mdio_mdio_io,
-    phy_rst_n,
-    rgmii_rd,
-    rgmii_rx_ctl,
-    rgmii_rxc,
-    rgmii_td,
-    rgmii_tx_ctl,
-    rgmii_txc);
+    phy1_rst_n,
+    mdio1_mdc,
+    mdio1_mdio_io,
+    rgmii1_rd,
+    rgmii1_rx_ctl,
+    rgmii1_rxc,
+    rgmii1_td,
+    rgmii1_tx_ctl,
+    rgmii1_txc);
 
   inout [14:0]DDR_addr;
   inout [2:0]DDR_ba;
@@ -58,16 +58,23 @@ module rocketchip_wrapper
   inout FIXED_IO_ps_srstb;
 
   input clk;
+  
+  output [0:0]phy1_rst_n;
 
-  output mdio_mdc;
-  inout mdio_mdio_io;
-  output [0:0]phy_rst_n;
-  input [3:0]rgmii_rd;
-  input rgmii_rx_ctl;
-  input rgmii_rxc;
-  output [3:0]rgmii_td;
-  output rgmii_tx_ctl;
-  output rgmii_txc;
+  output mdio1_mdc;
+  inout mdio1_mdio_io;
+  input [3:0]rgmii1_rd;
+  input rgmii1_rx_ctl;
+  input rgmii1_rxc;
+  output [3:0]rgmii1_td;
+  output rgmii1_tx_ctl;
+  output rgmii1_txc;
+  
+  wire mdio1_mdio_i;
+  wire mdio1_mdio_o;
+  wire mdio1_mdio_t;
+  assign mdio1_mdio_io = mdio1_mdio_t ? mdio1_mdio_o : 1'bz;
+  assign mdio1_mdio_i = mdio1_mdio_io;
 
   wire FCLK_RESET0_N;
   
@@ -146,12 +153,6 @@ module rocketchip_wrapper
   wire host_clk, sys_clk;
   wire gclk_i, gclk_fbout, host_clk_i, mmcm_locked;
 
-  wire mdio_mdio_i;
-  wire mdio_mdio_o;
-  wire mdio_mdio_t;
-
-  assign mdio_mdio_io = mdio_mdio_t ? mdio_mdio_o : 1'bz;
-  assign mdio_mdio_i = mdio_mdio_io;
 
   system system_i
        (.DDR_addr(DDR_addr),
@@ -267,17 +268,17 @@ module rocketchip_wrapper
         .S_AXI_wstrb(S_AXI_wstrb),
         .S_AXI_wvalid(S_AXI_wvalid),
         .ext_clk_in(host_clk),
-        .mdio_mdc(mdio_mdc),
-        .mdio_mdio_i(mdio_mdio_i),
-        .mdio_mdio_o(mdio_mdio_o),
-        .mdio_mdio_t(mdio_mdio_t),
-        .phy_rst_n(phy_rst_n),
-        .rgmii_rd(rgmii_rd),
-        .rgmii_rx_ctl(rgmii_rx_ctl),
-        .rgmii_rxc(rgmii_rxc),
-        .rgmii_td(rgmii_td),
-        .rgmii_tx_ctl(rgmii_tx_ctl),
-        .rgmii_txc(rgmii_txc),
+        .mdio1_mdc(mdio1_mdc),
+        .mdio1_mdio_i(mdio1_mdio_i),
+        .mdio1_mdio_o(mdio1_mdio_o),
+        .mdio1_mdio_t(mdio1_mdio_t),
+        .phy1_rst_n(phy1_rst_n),
+        .rgmii1_rd(rgmii1_rd),
+        .rgmii1_rx_ctl(rgmii1_rx_ctl),
+        .rgmii1_rxc(rgmii1_rxc),
+        .rgmii1_td(rgmii1_td),
+        .rgmii1_tx_ctl(rgmii1_tx_ctl),
+        .rgmii1_txc(rgmii1_txc),
         .sys_clk(sys_clk)
         );
 
