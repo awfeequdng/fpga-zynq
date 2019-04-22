@@ -216,12 +216,31 @@ fesvr-hdrs = \
 
 fesvr-lib = $(common_build)/libfesvr.so
 
+FESVR_DIR = $(ROCKET_DIR)/riscv-tools/riscv-fesvr/fesvr
+FESVR_SRCS = $(FESVR_DIR)/context.cc \
+		$(FESVR_DIR)/device.cc \
+		$(FESVR_DIR)/dtm.cc \
+		$(FESVR_DIR)/dummy.cc \
+		$(FESVR_DIR)/elfloader.cc \
+		$(FESVR_DIR)/htif.cc \
+		$(FESVR_DIR)/htif_hexwriter.cc \
+		$(FESVR_DIR)/htif_pthread.cc \
+		$(FESVR_DIR)/memif.cc \
+		$(FESVR_DIR)/option_parser.cc \
+		$(FESVR_DIR)/rfb.cc \
+		$(FESVR_DIR)/syscall.cc \
+		$(FESVR_DIR)/term.cc \
+		$(FESVR_DIR)/tsi.cc \
+		-DPREFIX=\"\" -lpthread -static
+
 CXX_FPGA      = arm-linux-gnueabihf-g++
-CXXFLAGS_FPGA = -O2 -std=c++11 -Wall -L$(common_build) -lfesvr \
+CXXFLAGS_FPGA = -O2 -std=c++11 -Wall -L$(common_build) \
                 -Wl,-rpath,/usr/local/lib \
+                -Wl,-dynamic-linker,/lib/ld-linux.so.3 \
 		-I $(common)/csrc -I $(testchipip)/csrc \
 		-I $(ROCKET_DIR)/riscv-tools/riscv-fesvr/ \
-		-Wl,-rpath,/usr/local/lib \
+		-Wl,-rpath,/usr/local/lib  \
+		$(FESVR_SRCS)
 
 $(fesvr-lib):
 	mkdir -p $(common_build)
