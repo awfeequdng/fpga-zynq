@@ -233,7 +233,7 @@ module rocketchip_wrapper
         .S_AXI_arprot(S_AXI_arprot),
         .S_AXI_arqos(S_AXI_arqos),
         .S_AXI_arready(S_AXI_arready),
-        .S_AXI_arregion(4'b0),
+        //.S_AXI_arregion(4'b0),
         .S_AXI_arsize(S_AXI_arsize),
         .S_AXI_arvalid(S_AXI_arvalid),
         //
@@ -246,7 +246,7 @@ module rocketchip_wrapper
         .S_AXI_awprot(S_AXI_awprot),
         .S_AXI_awqos(S_AXI_awqos),
         .S_AXI_awready(S_AXI_awready),
-        .S_AXI_awregion(4'b0),
+        //.S_AXI_awregion(4'b0),
         .S_AXI_awsize(S_AXI_awsize),
         .S_AXI_awvalid(S_AXI_awvalid),
         //
