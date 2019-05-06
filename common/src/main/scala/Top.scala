@@ -21,9 +21,11 @@ class Top(implicit val p: Parameters) extends Module {
   val io = IO(new Bundle {
     val ps_axi_slave = Flipped(adapter.axi.cloneType)
     val mem_axi = target.mem_axi4.head.cloneType
+    val mmio_axi = target.mmio_axi4.head.cloneType
   })
 
   io.mem_axi <> target.mem_axi4.head
+  io.mmio_axi <> target.mmio_axi4.head
   adapter.axi <> io.ps_axi_slave
   adapter.io.serial <> target.serial
   adapter.io.bdev <> target.bdev
@@ -36,6 +38,7 @@ class Top(implicit val p: Parameters) extends Module {
 
 class FPGAZynqTop(implicit p: Parameters) extends RocketSubsystem
     with HasMasterAXI4MemPort
+    with HasMasterAXI4MMIOPort
     with HasSystemErrorSlave
     with HasPeripheryBootROM
     with HasSyncExtInterrupts
@@ -48,6 +51,7 @@ class FPGAZynqTop(implicit p: Parameters) extends RocketSubsystem
 class FPGAZynqTopModule(outer: FPGAZynqTop) extends RocketSubsystemModuleImp(outer)
     with HasRTCModuleImp
     with HasMasterAXI4MemPortModuleImp
+    with HasMasterAXI4MMIOPortModuleImp
     with HasPeripheryBootROMModuleImp
     with HasExtInterruptsModuleImp
     with HasNoDebugModuleImp
