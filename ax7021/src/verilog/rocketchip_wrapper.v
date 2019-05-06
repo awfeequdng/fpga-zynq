@@ -466,7 +466,7 @@ module rocketchip_wrapper
 
    .io_mmio_axi_ar_valid (S_AXI_MMIO_arvalid),
    .io_mmio_axi_ar_ready (S_AXI_MMIO_arready),
-   .io_mmio_axi_ar_bits_addr (mmio_araddr),
+   .io_mmio_axi_ar_bits_addr (S_AXI_MMIO_araddr),
    .io_mmio_axi_ar_bits_id (S_AXI_MMIO_arid),
    .io_mmio_axi_ar_bits_size (S_AXI_MMIO_arsize),
    .io_mmio_axi_ar_bits_len (S_AXI_MMIO_arlen),
@@ -477,7 +477,7 @@ module rocketchip_wrapper
    .io_mmio_axi_ar_bits_qos (S_AXI_MMIO_arqos),
    .io_mmio_axi_aw_valid (S_AXI_MMIO_awvalid),
    .io_mmio_axi_aw_ready (S_AXI_MMIO_awready),
-   .io_mmio_axi_aw_bits_addr (mmio_awaddr),
+   .io_mmio_axi_aw_bits_addr (S_AXI_MMIO_awaddr),
    .io_mmio_axi_aw_bits_id (S_AXI_MMIO_awid),
    .io_mmio_axi_aw_bits_size (S_AXI_MMIO_awsize),
    .io_mmio_axi_aw_bits_len (S_AXI_MMIO_awlen),
