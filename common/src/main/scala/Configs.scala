@@ -23,6 +23,7 @@ class WithZynqAdapter extends Config((site, here, up) => {
   case BlockDeviceKey => BlockDeviceConfig(nTrackers = 2)
   case BlockDeviceFIFODepth => 16
   case NetworkFIFODepth => 16
+  case NExtTopInterrupts => 2
 })
 
 class WithNMediumCores(n: Int) extends Config((site, here, up) => {

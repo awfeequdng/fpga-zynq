@@ -22,16 +22,18 @@ class Top(implicit val p: Parameters) extends Module {
     val ps_axi_slave = Flipped(adapter.axi.cloneType)
     val mem_axi = target.mem_axi4.head.cloneType
     val mmio_axi = target.mmio_axi4.head.cloneType
+    val interrupts = Input(UInt(2.W))
   })
 
   io.mem_axi <> target.mem_axi4.head
   io.mmio_axi <> target.mmio_axi4.head
+  target.interrupts := io.interrupts
   adapter.axi <> io.ps_axi_slave
   adapter.io.serial <> target.serial
   adapter.io.bdev <> target.bdev
 
   target.debug := DontCare
-  target.tieOffInterrupts()
+  // target.tieOffInterrupts()
   target.dontTouchPorts()
   target.reset := adapter.io.sys_reset
 }
@@ -41,7 +43,7 @@ class FPGAZynqTop(implicit p: Parameters) extends RocketSubsystem
     with HasMasterAXI4MMIOPort
     with HasSystemErrorSlave
     with HasPeripheryBootROM
-    with HasSyncExtInterrupts
+    with HasAsyncExtInterrupts
     with HasNoDebug
     with HasPeripherySerial
     with HasPeripheryBlockDevice {
