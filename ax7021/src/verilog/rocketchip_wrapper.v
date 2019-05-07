@@ -24,6 +24,8 @@ module rocketchip_wrapper
     FIXED_IO_ps_porb,
     FIXED_IO_ps_srstb,
     clk, // 50MHz
+    uart_tx,
+    uart_rx,
     phy1_rst_n,
     mdio1_mdc,
     mdio1_mdio_io,
@@ -58,6 +60,9 @@ module rocketchip_wrapper
   inout FIXED_IO_ps_srstb;
 
   input clk;
+
+  output uart_tx;
+  input uart_rx;
   
   output [0:0]phy1_rst_n;
 
@@ -195,6 +200,8 @@ module rocketchip_wrapper
   wire reset, reset_cpu;
   wire host_clk, sys_clk;
   wire gclk_i, gclk_fbout, host_clk_i, mmcm_locked;
+
+  wire [1:0] interrupts;
 
 
   system system_i
@@ -356,7 +363,10 @@ module rocketchip_wrapper
         .S_AXI_MMIO_wready(S_AXI_MMIO_wready),
         .S_AXI_MMIO_wstrb(S_AXI_MMIO_wstrb),
         .S_AXI_MMIO_wvalid(S_AXI_MMIO_wvalid),
+	.UART_0_rxd(uart_rx),
+	.UART_0_txd(uart_tx),
         .ext_clk_in(host_clk),
+	.interrupts(interrupts),
         .mdio1_mdc(mdio1_mdc),
         .mdio1_mdio_i(mdio1_mdio_i),
         .mdio1_mdio_o(mdio1_mdio_o),
@@ -500,7 +510,8 @@ module rocketchip_wrapper
    .io_mmio_axi_r_bits_resp (S_AXI_MMIO_rresp),
    .io_mmio_axi_r_bits_id (S_AXI_MMIO_rid),
    .io_mmio_axi_r_bits_data (S_AXI_MMIO_rdata),
-   .io_mmio_axi_r_bits_last (S_AXI_MMIO_rlast)
+   .io_mmio_axi_r_bits_last (S_AXI_MMIO_rlast),
+   .io_interrupts(interrupts)
   );
 
   IBUFG ibufg_gclk (.I(clk), .O(gclk_i));

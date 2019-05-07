@@ -7,6 +7,11 @@ set_property PACKAGE_PIN Y9 [get_ports clk]
 set_property IOSTANDARD LVCMOS33 [get_ports clk]
 create_clock -period 20.000 -name gclk_0 -waveform {0.000 10.000} [get_ports clk]
 
+set_property PACKAGE_PIN V12 [get_ports uart_tx] // V12 := J16 port 3
+set_property PACKAGE_PIN W12 [get_ports uart_rx] // W12 := J16 port 4
+set_property IOSTANDARD LVCMOS33 [get_ports uart_tx]
+set_property IOSTANDARD LVCMOS33 [get_ports uart_rx]
+
 set_property PACKAGE_PIN J17 [get_ports mdio1_mdc]
 set_property PACKAGE_PIN J16 [get_ports mdio1_mdio_io]
 set_property PACKAGE_PIN L18 [get_ports {phy1_rst_n[0]}]
