@@ -23,18 +23,27 @@ module rocketchip_wrapper
     FIXED_IO_ps_clk,
     FIXED_IO_ps_porb,
     FIXED_IO_ps_srstb,
+
     clk, // 50MHz
     uart_tx,
     uart_rx,
-    phy1_rst_n,
-    mdio1_mdc,
-    mdio1_mdio_io,
+
+    // router
+    reset_n_in,
     rgmii1_rd,
     rgmii1_rx_ctl,
     rgmii1_rxc,
     rgmii1_td,
     rgmii1_tx_ctl,
-    rgmii1_txc);
+    rgmii1_txc,
+
+    rgmii2_rd,
+    rgmii2_rx_ctl,
+    rgmii2_rxc,
+    rgmii2_td,
+    rgmii2_tx_ctl,
+    rgmii2_txc
+);
 
   inout [14:0]DDR_addr;
   inout [2:0]DDR_ba;
@@ -64,22 +73,21 @@ module rocketchip_wrapper
   output uart_tx;
   input uart_rx;
   
-  output [0:0]phy1_rst_n;
+  input reset_n_in;
 
-  output mdio1_mdc;
-  inout mdio1_mdio_io;
   input [3:0]rgmii1_rd;
   input rgmii1_rx_ctl;
   input rgmii1_rxc;
   output [3:0]rgmii1_td;
   output rgmii1_tx_ctl;
   output rgmii1_txc;
-  
-  wire mdio1_mdio_i;
-  wire mdio1_mdio_o;
-  wire mdio1_mdio_t;
-  assign mdio1_mdio_io = mdio1_mdio_t ? mdio1_mdio_o : 1'bz;
-  assign mdio1_mdio_i = mdio1_mdio_io;
+
+  input [3:0]rgmii2_rd;
+  input rgmii2_rx_ctl;
+  input rgmii2_rxc;
+  output [3:0]rgmii2_td;
+  output rgmii2_tx_ctl;
+  output rgmii2_txc;
 
   wire FCLK_RESET0_N;
   
@@ -205,6 +213,16 @@ module rocketchip_wrapper
   
   assign interrupts[1] = 0;
 
+  wire [7:0] AXI_STR_RXD_0_tdata;
+  wire AXI_STR_RXD_0_tlast;
+  wire AXI_STR_RXD_0_tready;
+  wire AXI_STR_RXD_0_tvalid;
+
+  wire [7:0] AXI_STR_TXD_0_tdata;
+  wire AXI_STR_TXD_0_tlast;
+  wire AXI_STR_TXD_0_tready;
+  wire AXI_STR_TXD_0_tvalid;
+
 
   system system_i
        (.DDR_addr(DDR_addr),
@@ -229,6 +247,18 @@ module rocketchip_wrapper
         .FIXED_IO_ps_clk(FIXED_IO_ps_clk),
         .FIXED_IO_ps_porb(FIXED_IO_ps_porb),
         .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb),
+	
+	.AXI_STR_RXD_0_tdata(AXI_STR_RXD_0_tdata),
+	.AXI_STR_RXD_0_tready(AXI_STR_RXD_0_tready),
+	.AXI_STR_RXD_0_tvalid(AXI_STR_RXD_0_tvalid),
+	.AXI_STR_RXD_0_tlast(AXI_STR_RXD_0_tlast),
+
+	.AXI_STR_TXD_0_tdata(AXI_STR_TXD_0_tdata),
+	.AXI_STR_TXD_0_tready(AXI_STR_TXD_0_tready),
+	.AXI_STR_TXD_0_tvalid(AXI_STR_TXD_0_tvalid),
+	.AXI_STR_TXD_0_tlast(AXI_STR_TXD_0_tlast),
+
+
         // master AXI interface (zynq = master, fpga = slave)
         .M_AXI_araddr(M_AXI_araddr),
         .M_AXI_arburst(M_AXI_arburst), // burst type
@@ -569,5 +599,33 @@ module rocketchip_wrapper
     .PWRDWN(1'b0),
     .RST(1'b0),
     .CLKFBIN(gclk_fbout));
+
+  top_axi top_axi_inst (
+    .clk(clk),
+    .reset_n_in(reset_n_in),
+    .axis_clk(host_clk),
+    .axis_rxd_tdata(AXI_STR_RXD_0_tdata),
+    .axis_rxd_tready(AXI_STR_RXD_0_tready),
+    .axis_rxd_tvalid(AXI_STR_RXD_0_tvalid),
+    .axis_rxd_tlast(AXI_STR_RXD_0_tlast),
+    .axis_txd_tdata(AXI_STR_TXD_0_tdata),
+    .axis_txd_tready(AXI_STR_TXD_0_tready),
+    .axis_txd_tvalid(AXI_STR_TXD_0_tvalid),
+    .axis_txd_tlast(AXI_STR_TXD_0_tlast),
+
+    .rgmii1_rd(rgmii1_rd),
+    .rgmii1_rx_ctl(rgmii1_rx_ctl),
+    .rgmii1_rxc(rgmii1_rxc),
+    .rgmii1_td(rgmii1_td),
+    .rgmii1_tx_ctl(rgmii1_tx_ctl),
+    .rgmii1_txc(rgmii1_txc),
+
+    .rgmii2_rd(rgmii2_rd),
+    .rgmii2_rx_ctl(rgmii2_rx_ctl),
+    .rgmii2_rxc(rgmii2_rxc),
+    .rgmii2_td(rgmii2_td),
+    .rgmii2_tx_ctl(rgmii2_tx_ctl),
+    .rgmii2_txc(rgmii2_txc)
+  );
 
 endmodule
