@@ -202,6 +202,8 @@ module rocketchip_wrapper
   wire gclk_i, gclk_fbout, host_clk_i, mmcm_locked;
 
   wire [1:0] interrupts;
+  
+  assign interrupts[1] = 0;
 
 
   system system_i
@@ -363,21 +365,21 @@ module rocketchip_wrapper
         .S_AXI_MMIO_wready(S_AXI_MMIO_wready),
         .S_AXI_MMIO_wstrb(S_AXI_MMIO_wstrb),
         .S_AXI_MMIO_wvalid(S_AXI_MMIO_wvalid),
-	.UART_0_rxd(uart_rx),
-	.UART_0_txd(uart_tx),
+        .UART_0_rxd(uart_rx),
+        .UART_0_txd(uart_tx),
         .ext_clk_in(host_clk),
-	.interrupts(interrupts),
-        .mdio1_mdc(mdio1_mdc),
-        .mdio1_mdio_i(mdio1_mdio_i),
-        .mdio1_mdio_o(mdio1_mdio_o),
-        .mdio1_mdio_t(mdio1_mdio_t),
-        .phy1_rst_n(phy1_rst_n),
-        .rgmii1_rd(rgmii1_rd),
-        .rgmii1_rx_ctl(rgmii1_rx_ctl),
-        .rgmii1_rxc(rgmii1_rxc),
-        .rgmii1_td(rgmii1_td),
-        .rgmii1_tx_ctl(rgmii1_tx_ctl),
-        .rgmii1_txc(rgmii1_txc),
+        .interrupts_interrupt(interrupts[0]),
+        //.mdio1_mdc(mdio1_mdc),
+        //.mdio1_mdio_i(mdio1_mdio_i),
+        //.mdio1_mdio_o(mdio1_mdio_o),
+        //.mdio1_mdio_t(mdio1_mdio_t),
+        //.phy1_rst_n(phy1_rst_n),
+        //.rgmii1_rd(rgmii1_rd),
+        //.rgmii1_rx_ctl(rgmii1_rx_ctl),
+        //.rgmii1_rxc(rgmii1_rxc),
+        //.rgmii1_td(rgmii1_td),
+        //.rgmii1_tx_ctl(rgmii1_tx_ctl),
+        //.rgmii1_txc(rgmii1_txc),
         .sys_clk(sys_clk)
         );
 
