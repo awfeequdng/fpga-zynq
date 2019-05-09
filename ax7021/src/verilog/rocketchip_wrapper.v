@@ -206,7 +206,8 @@ module rocketchip_wrapper
   wire S_AXI_MMIO_rlast;
 
   wire reset, reset_cpu;
-  wire host_clk, sys_clk;
+  wire host_clk; // 25MHz
+  wire sys_clk; // 50MHz
   wire gclk_i, gclk_fbout, host_clk_i, mmcm_locked;
 
   wire [1:0] interrupts;
@@ -397,7 +398,7 @@ module rocketchip_wrapper
         .S_AXI_MMIO_wvalid(S_AXI_MMIO_wvalid),
         .UART_0_rxd(uart_rx),
         .UART_0_txd(uart_tx),
-        .ext_clk_in(host_clk),
+        .ext_clk_in(host_clk), // 25MHz
         .interrupts_interrupt(interrupts[0]),
         //.mdio1_mdc(mdio1_mdc),
         //.mdio1_mdio_i(mdio1_mdio_i),
@@ -423,7 +424,7 @@ module rocketchip_wrapper
   assign S_AXI_awaddr = {4'd1, mem_awaddr[27:0]};
 
   Top top(
-   .clock(host_clk),
+   .clock(host_clk), // 25MHz
    .reset(reset),
 
    .io_ps_axi_slave_aw_ready (M_AXI_awready),
@@ -601,9 +602,9 @@ module rocketchip_wrapper
     .CLKFBIN(gclk_fbout));
 
   top_axi top_axi_inst (
-    .clk(clk),
+    .clk(sys_clk), // 50MHz
     .reset_n_in(reset_n_in),
-    .axis_clk(host_clk),
+    .axis_clk(host_clk), // 25MHz
     .axis_rxd_tdata(AXI_STR_RXD_0_tdata),
     .axis_rxd_tready(AXI_STR_RXD_0_tready),
     .axis_rxd_tvalid(AXI_STR_RXD_0_tvalid),
