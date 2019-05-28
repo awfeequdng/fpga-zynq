@@ -288,8 +288,8 @@ module port #(
     xpm_fifo_async #(
         .READ_DATA_WIDTH(`BYTE_WIDTH),
         .WRITE_DATA_WIDTH(`BYTE_WIDTH),
-        .FIFO_WRITE_DEPTH(`MAX_FIFO_SIZE),
-        .PROG_FULL_THRESH(`MAX_FIFO_SIZE - `MAX_ETHERNET_FRAME_BYTES)
+        .FIFO_WRITE_DEPTH(`MAX_INPUT_FIFO_SIZE),
+        .PROG_FULL_THRESH(`MAX_INPUT_FIFO_SIZE - `MAX_ETHERNET_FRAME_BYTES)
     ) xpm_fifo_async_inst_rx_data (
         .dout(rx_data_out),
         .rd_en(rx_data_ren),
@@ -351,7 +351,7 @@ module port #(
                 rx_data_in <= rx_axis_mac_tdata;
                 rx_len_wen <= 0;
                 rx_len_in <= 0;
-            end else if (!rx_axis_mac_tvalid && rx_axis_mac_tvalid_last) begin
+            end else if (!rx_axis_mac_tvalid && rx_axis_mac_tvalid_last && rx_data_wen) begin
                 // end
                 rx_data_wen <= 0;
                 rx_data_in <= 0;
@@ -591,7 +591,6 @@ module port #(
                                 // send to same port
                                 fifo_matrix_rx_wvalid[port_id] <= 1;
                             end
-                            // TODO: when HARDWARE_CONTROL_PLANE is defined, handle RIP packets
                         `else
                             // when HARDWARE_CONTROL_PLANE is not defined, send packets to OS directly when ip matches
                             if (rx_saved_arp_opcode == `ARP_OPCODE_REQUEST && rx_saved_arp_dst_ipv4_addr == port_ip[port_id]) begin
@@ -631,12 +630,34 @@ module port #(
                         end
                     end
 
-                    if (rx_saved_ethertype == `IPV4_ETHERTYPE && rx_saved_ipv4_dst_addr != port_ip[port_id] && rx_read_counter == rx_read_length - 2 && !ip_routing && !ip_routed && rx_saved_ipv4_ttl > 1) begin
-                        ip_routed <= 1;
-                        ip_routing <= 1;
-                        ip_lookup_routing <= 0;
-                        routing_arbiter_req <= 1;
-                        routing_lookup_valid <= 0;
+                    if (rx_saved_ethertype == `IPV4_ETHERTYPE && rx_read_counter == rx_read_length - 2 && !ip_routing && !ip_routed) begin
+                        if (rx_saved_ipv4_dst_addr != port_ip[port_id] && rx_saved_ipv4_ttl > 1) begin
+                            ip_routed <= 1;
+                            ip_routing <= 1;
+                            ip_lookup_routing <= 0;
+                            routing_arbiter_req <= 1;
+                            routing_lookup_valid <= 0;
+                        end
+                        `ifndef HARDWARE_CONTROL_PLANE
+                        else begin
+                            // should send to os
+                            ip_routed <= 1;
+                            ip_routing <= 0;
+                            ip_lookup_routing <= 0;
+                            rx_found_nexthop_ipv4 <= 0;
+                            rx_outbound <= 1;
+                            rx_outbound_length <= rx_read_length - 4; // skip fcs
+                            rx_outbound_counter <= 0;
+                            // reversed, see below
+                            rx_nexthop_mac_addr <= rx_saved_dst_mac_addr;
+                            rx_saved_dst_mac_addr <= rx_saved_src_mac_addr;
+                            // will minus 1 later
+                            rx_saved_ipv4_ttl <= rx_saved_ipv4_ttl + 1;
+                            // send to os port
+                            rx_outbound_port_id <= `OS_PORT_ID;
+                            fifo_matrix_rx_wvalid[`OS_PORT_ID] <= 1;
+                        end
+                        `endif
                     end
                 end
                 if (arp_write) begin
