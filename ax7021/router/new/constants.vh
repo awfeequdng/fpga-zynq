@@ -4,8 +4,10 @@
 // controls whether the control logic is handled in hardware or software
 // `define HARDWARE_CONTROL_PLANE 1
 `define OS_PORT_ID 3'b100
-`define PORT_OS_COUNT 5
+`define PORT_OS_COUNT 8
 `define PORT_OS_WIDTH 3
+
+`define STATS_WIDTH 32
 
 `define MAX_FIFO_SIZE 8192
 `define MAX_INPUT_FIFO_SIZE 32768
@@ -18,12 +20,16 @@
 `define BUCKET_DEPTH_COUNT 4
 `define BUCKET_DEPTH_WIDTH 2
 
+
 `define IPV4_WIDTH 32
 `define MAC_WIDTH 48
 `define ETHERTYPE_WIDTH 16
 `define PORT_COUNT 4
 `define PORT_WIDTH 2
 `define ENABLE_PORT_COUNT 2
+
+// actual (`PORT_WIDTH+`IPV4_WIDTH+`IPV4_WIDTH+`IPV4_WIDTH), rounded up to 2's pow
+`define ROUTING_TABLE_ENTRY_WIDTH 128
 
 // Ethernet
 `define DST_MAC_BEGIN 0

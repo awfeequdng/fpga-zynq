@@ -85,7 +85,13 @@ module port #(
     input logic rgmii_rxc,
     output logic [3:0] rgmii_td,
     output logic rgmii_tx_ctl,
-    output logic rgmii_txc
+    output logic rgmii_txc,
+
+    // statistics
+    output logic [`STATS_WIDTH-1:0] stats_rx_packets,
+    output logic [`STATS_WIDTH-1:0] stats_rx_bytes,
+    output logic [`STATS_WIDTH-1:0] stats_tx_packets,
+    output logic [`STATS_WIDTH-1:0] stats_tx_bytes
     );
 
     logic reset;
@@ -245,12 +251,17 @@ module port #(
             tx_send <= 0;
             tx_send_counter <= 0;
             tx_send_length <= 0;
+
+            stats_tx_packets <= 0;
+            stats_tx_bytes <= 0;
         end else begin
             if (!tx_send && !tx_len_empty) begin
                 tx_send <= 1;
                 tx_len_ren <= 1;
                 tx_send_counter <= 0;
                 tx_send_length <= 0;
+
+                stats_tx_packets <= stats_tx_packets + 1;
             end else if (tx_send) begin
                 if (tx_axis_mac_tready) begin
                     tx_send_counter <= tx_send_counter + 1;
@@ -269,6 +280,10 @@ module port #(
                 end
                 if (!tx_send_length && !tx_len_ren) begin
                     tx_send_length <= tx_len_out;
+                end
+
+                if (tx_len_ren) begin
+                    stats_tx_bytes <= stats_tx_bytes + tx_len_out;
                 end
                 tx_len_ren <= 0;
             end
@@ -342,6 +357,9 @@ module port #(
             rx_length <= 0;
             rx_len_wen <= 0;
             rx_len_in <= 0;
+
+            stats_rx_packets <= 0;
+            stats_rx_bytes <= 0;
         end else begin
             rx_axis_mac_tvalid_last <= rx_axis_mac_tvalid;
             if (rx_axis_mac_tvalid && !rx_axis_mac_tvalid_last && !rx_data_busy && !rx_data_full && !rx_len_busy && !rx_len_full) begin
@@ -357,6 +375,9 @@ module port #(
                 rx_data_in <= 0;
                 rx_len_wen <= 1;
                 rx_len_in <= rx_length;
+
+                stats_rx_packets <= stats_rx_packets + 1;
+                stats_rx_bytes <= stats_rx_bytes + rx_length;
             end else begin
                 // progress
                 if (rx_data_wen) begin
@@ -372,7 +393,7 @@ module port #(
         end
     end
 
-    (*mark_debug = "true"*) logic rx_read;
+    logic rx_read;
     logic [`LENGTH_WIDTH-1:0] rx_read_length;
     logic [`BYTE_WIDTH-1:0] rx_read_data;
     logic [`LENGTH_WIDTH-1:0] rx_read_counter;
@@ -391,17 +412,17 @@ module port #(
     logic [`IPV4_WIDTH-1:0] rx_saved_ipv4_src_addr;
     logic [`IPV4_WIDTH-1:0] rx_saved_ipv4_dst_addr;
 
-    (*mark_debug = "true"*) logic [`IPV4_WIDTH-1:0] rx_nexthop_ipv4_addr;
-    (*mark_debug = "true"*) logic [`PORT_WIDTH-1:0] rx_nexthop_port;
-    (*mark_debug = "true"*) logic [`MAC_WIDTH-1:0] rx_nexthop_mac_addr;
+    logic [`IPV4_WIDTH-1:0] rx_nexthop_ipv4_addr;
+    logic [`PORT_WIDTH-1:0] rx_nexthop_port;
+    logic [`MAC_WIDTH-1:0] rx_nexthop_mac_addr;
     //logic [`MAX_ETHERNET_FRAME_BYTES*`BYTE_WIDTH-1:0] rx_saved_ipv4_packet;
-    (*mark_debug = "true"*) logic rx_found_nexthop_ipv4;
-    (*mark_debug = "true"*) logic rx_lookup_nexthop_mac;
+    logic rx_found_nexthop_ipv4;
+    logic rx_lookup_nexthop_mac;
 
-    (*mark_debug = "true"*) logic [`BYTE_WIDTH-1:0] rx_saved_ipv4_in;
-    (*mark_debug = "true"*) logic [`BYTE_WIDTH-1:0] rx_saved_ipv4_out;
-    (*mark_debug = "true"*) logic [`LENGTH_WIDTH-1:0] rx_saved_ipv4_addr;
-    (*mark_debug = "true"*) logic rx_saved_ipv4_wen;
+    logic [`BYTE_WIDTH-1:0] rx_saved_ipv4_in;
+    logic [`BYTE_WIDTH-1:0] rx_saved_ipv4_out;
+    logic [`LENGTH_WIDTH-1:0] rx_saved_ipv4_addr;
+    logic rx_saved_ipv4_wen;
 
     // stores the current ethernet frame temporarily
     xpm_memory_spram #(
@@ -422,19 +443,19 @@ module port #(
     );
 
     logic [`ARP_RESPONSE_COUNT*`BYTE_WIDTH-1:0] rx_outbound_arp_response;
-    (*mark_debug = "true"*) logic [`LENGTH_WIDTH-1:0] rx_outbound_length;
-    (*mark_debug = "true"*) logic [`LENGTH_WIDTH-1:0] rx_outbound_counter;
+    logic [`LENGTH_WIDTH-1:0] rx_outbound_length;
+    logic [`LENGTH_WIDTH-1:0] rx_outbound_counter;
 
     // arp insertion is working
-    (*mark_debug = "true"*) logic arp_write;
-    (*mark_debug = "true"*) logic arp_written;
+    logic arp_write;
+    logic arp_written;
     // ip routing is working
-    (*mark_debug = "true"*) logic ip_routing;
-    (*mark_debug = "true"*) logic ip_routed;
-    (*mark_debug = "true"*) logic ip_lookup_routing;
+    logic ip_routing;
+    logic ip_routed;
+    logic ip_lookup_routing;
     // data transfer is working
-    (*mark_debug = "true"*) logic rx_outbound;
-    (*mark_debug = "true"*) logic [`PORT_OS_COUNT-1:0] rx_outbound_port_id;
+    logic rx_outbound;
+    logic [`PORT_OS_COUNT-1:0] rx_outbound_port_id;
 
     always_ff @ (posedge clk) begin
         if (reset) begin
@@ -631,7 +652,12 @@ module port #(
                     end
 
                     if (rx_saved_ethertype == `IPV4_ETHERTYPE && rx_read_counter == rx_read_length - 2 && !ip_routing && !ip_routed) begin
+                        `ifndef HARDWARE_CONTROL_PLANE
+                        // multicast should be sent to os
+                        if (rx_saved_ipv4_dst_addr != port_ip[port_id] && rx_saved_ipv4_ttl > 1 && rx_saved_ipv4_dst_addr[`IPV4_WIDTH-1:`IPV4_WIDTH-4] != 4'b1110) begin
+                        `else
                         if (rx_saved_ipv4_dst_addr != port_ip[port_id] && rx_saved_ipv4_ttl > 1) begin
+                        `endif
                             ip_routed <= 1;
                             ip_routing <= 1;
                             ip_lookup_routing <= 0;

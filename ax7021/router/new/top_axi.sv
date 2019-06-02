@@ -53,7 +53,20 @@ module top_axi(
     input logic rgmii2_rxc,
     output logic [3:0] rgmii2_td,
     output logic rgmii2_tx_ctl,
-    output logic rgmii2_txc
+    output logic rgmii2_txc,
+
+    output logic [`PORT_OS_COUNT-1:0][`STATS_WIDTH-1:0] stats_rx_packets,
+    output logic [`PORT_OS_COUNT-1:0][`STATS_WIDTH-1:0] stats_rx_bytes,
+    output logic [`PORT_OS_COUNT-1:0][`STATS_WIDTH-1:0] stats_tx_packets,
+    output logic [`PORT_OS_COUNT-1:0][`STATS_WIDTH-1:0] stats_tx_bytes,
+
+    input os_clk,
+    input [`BUCKET_INDEX_WIDTH-1:0] os_addr,
+    input [`ROUTING_TABLE_ENTRY_WIDTH-1:0] os_din,
+    output [`ROUTING_TABLE_ENTRY_WIDTH-1:0] os_dout,
+    input [(`ROUTING_TABLE_ENTRY_WIDTH)/`BYTE_WIDTH-1:0] os_wea,
+    input os_rst,
+    input os_en
     );
     
     logic reset;
@@ -147,7 +160,15 @@ module top_axi(
         .port_lookup_valid(port_lookup_valid),
         .port_lookup_ready(port_lookup_ready),
         .port_lookup_output_valid(port_lookup_output_valid),
-        .port_lookup_not_found(port_lookup_not_found)
+        .port_lookup_not_found(port_lookup_not_found),
+
+        .os_clk(os_clk),
+        .os_addr(os_addr),
+        .os_din(os_din),
+        .os_dout(os_dout),
+        .os_wea(os_wea),
+        .os_rst(os_rst),
+        .os_en(os_en)
     );
 
     // ports
@@ -219,7 +240,12 @@ module top_axi(
         .rgmii_txc(rgmii1_txc),
         .rgmii_rd(rgmii1_rd),
         .rgmii_rx_ctl(rgmii1_rx_ctl),
-        .rgmii_rxc(rgmii1_rxc)
+        .rgmii_rxc(rgmii1_rxc),
+        
+        .stats_rx_bytes(stats_rx_bytes[0]),
+        .stats_rx_packets(stats_rx_packets[0]),
+        .stats_tx_bytes(stats_tx_bytes[0]),
+        .stats_tx_packets(stats_tx_packets[0])
     );
 
     // port 1
@@ -278,7 +304,12 @@ module top_axi(
         .rgmii_txc(rgmii2_txc),
         .rgmii_rd(rgmii2_rd),
         .rgmii_rx_ctl(rgmii2_rx_ctl),
-        .rgmii_rxc(rgmii2_rxc)
+        .rgmii_rxc(rgmii2_rxc),
+
+        .stats_rx_bytes(stats_rx_bytes[1]),
+        .stats_rx_packets(stats_rx_packets[1]),
+        .stats_tx_bytes(stats_tx_bytes[1]),
+        .stats_tx_packets(stats_tx_packets[1])
     );
 
 `ifndef HARDWARE_CONTROL_PLANE
@@ -350,7 +381,7 @@ module top_axi(
         end
     end
 
-    // from os to fifo matrix to os tx fifo
+    // from os tx fifo to fifo matrix
     logic [`PORT_WIDTH-1:0] fifo_matrix_tx_index;
     logic [`LENGTH_WIDTH-1:0] fifo_matrix_tx_length;
     logic [`LENGTH_WIDTH-1:0] fifo_matrix_tx_counter;
