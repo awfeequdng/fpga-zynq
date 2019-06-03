@@ -1,5 +1,6 @@
 `timescale 1 ps / 1 ps
 `include "clocking.vh"
+`include "constants.vh"
 
 module rocketchip_wrapper
    (DDR_addr,
@@ -224,6 +225,29 @@ module rocketchip_wrapper
   wire AXI_STR_TXD_0_tready;
   wire AXI_STR_TXD_0_tvalid;
 
+  wire [`PORT_OS_COUNT-1:0][`STATS_WIDTH-1:0] stats_rx_packets;
+  wire [`PORT_OS_COUNT-1:0][`STATS_WIDTH-1:0] stats_rx_bytes;
+  wire [`PORT_OS_COUNT-1:0][`STATS_WIDTH-1:0] stats_tx_packets;
+  wire [`PORT_OS_COUNT-1:0][`STATS_WIDTH-1:0] stats_tx_bytes;
+
+  wire [`STATS_WIDTH-1:0] stats_total_rx_packets;
+  wire [`STATS_WIDTH-1:0] stats_total_rx_bytes;
+  wire [`STATS_WIDTH-1:0] stats_total_tx_packets;
+  wire [`STATS_WIDTH-1:0] stats_total_tx_bytes;
+
+  assign stats_total_rx_packets = stats_rx_packets[0] + stats_rx_packets[1];
+  assign stats_total_rx_bytes = stats_rx_bytes[0] + stats_rx_bytes[1];
+  assign stats_total_tx_packets = stats_tx_packets[0] + stats_tx_packets[1];
+  assign stats_total_tx_bytes = stats_tx_bytes[0] + stats_tx_bytes[1];
+
+  // accessing routing table
+  wire os_clk;
+  wire [16-1:0] os_addr;
+  wire [`ROUTING_TABLE_ENTRY_WIDTH-1:0] os_din;
+  wire [`ROUTING_TABLE_ENTRY_WIDTH-1:0] os_dout;
+  wire [(`ROUTING_TABLE_ENTRY_WIDTH)/`BYTE_WIDTH-1:0] os_wea;
+  wire os_rst;
+  wire os_en;
 
   system system_i
        (.DDR_addr(DDR_addr),
@@ -249,15 +273,15 @@ module rocketchip_wrapper
         .FIXED_IO_ps_porb(FIXED_IO_ps_porb),
         .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb),
 	
-	.AXI_STR_RXD_0_tdata(AXI_STR_RXD_0_tdata),
-	.AXI_STR_RXD_0_tready(AXI_STR_RXD_0_tready),
-	.AXI_STR_RXD_0_tvalid(AXI_STR_RXD_0_tvalid),
-	.AXI_STR_RXD_0_tlast(AXI_STR_RXD_0_tlast),
+        .AXI_STR_RXD_0_tdata(AXI_STR_RXD_0_tdata),
+        .AXI_STR_RXD_0_tready(AXI_STR_RXD_0_tready),
+        .AXI_STR_RXD_0_tvalid(AXI_STR_RXD_0_tvalid),
+        .AXI_STR_RXD_0_tlast(AXI_STR_RXD_0_tlast),
 
-	.AXI_STR_TXD_0_tdata(AXI_STR_TXD_0_tdata),
-	.AXI_STR_TXD_0_tready(AXI_STR_TXD_0_tready),
-	.AXI_STR_TXD_0_tvalid(AXI_STR_TXD_0_tvalid),
-	.AXI_STR_TXD_0_tlast(AXI_STR_TXD_0_tlast),
+        .AXI_STR_TXD_0_tdata(AXI_STR_TXD_0_tdata),
+        .AXI_STR_TXD_0_tready(AXI_STR_TXD_0_tready),
+        .AXI_STR_TXD_0_tvalid(AXI_STR_TXD_0_tvalid),
+        .AXI_STR_TXD_0_tlast(AXI_STR_TXD_0_tlast),
 
 
         // master AXI interface (zynq = master, fpga = slave)
@@ -400,17 +424,21 @@ module rocketchip_wrapper
         .UART_0_txd(uart_tx),
         .ext_clk_in(host_clk), // 25MHz
         .interrupts_interrupt(interrupts[0]),
-        //.mdio1_mdc(mdio1_mdc),
-        //.mdio1_mdio_i(mdio1_mdio_i),
-        //.mdio1_mdio_o(mdio1_mdio_o),
-        //.mdio1_mdio_t(mdio1_mdio_t),
-        //.phy1_rst_n(phy1_rst_n),
-        //.rgmii1_rd(rgmii1_rd),
-        //.rgmii1_rx_ctl(rgmii1_rx_ctl),
-        //.rgmii1_rxc(rgmii1_rxc),
-        //.rgmii1_td(rgmii1_td),
-        //.rgmii1_tx_ctl(rgmii1_tx_ctl),
-        //.rgmii1_txc(rgmii1_txc),
+
+        .rx_bytes_tri_i(stats_total_rx_bytes),
+        .rx_packets_tri_i(stats_total_rx_packets),
+
+        .tx_bytes_tri_i(stats_total_tx_bytes),
+        .tx_packets_tri_i(stats_total_tx_packets),
+
+        .routing_table_addr(os_addr),
+        .routing_table_clk(os_clk),
+        .routing_table_din(os_din),
+        .routing_table_dout(os_dout),
+        .routing_table_en(os_en),
+        .routing_table_rst(os_rst),
+        .routing_table_we(os_wea),
+
         .sys_clk(sys_clk)
         );
 
@@ -626,7 +654,20 @@ module rocketchip_wrapper
     .rgmii2_rxc(rgmii2_rxc),
     .rgmii2_td(rgmii2_td),
     .rgmii2_tx_ctl(rgmii2_tx_ctl),
-    .rgmii2_txc(rgmii2_txc)
+    .rgmii2_txc(rgmii2_txc),
+
+    .stats_rx_bytes(stats_rx_bytes),
+    .stats_rx_packets(stats_rx_packets),
+    .stats_tx_bytes(stats_tx_bytes),
+    .stats_tx_packets(stats_tx_packets),
+
+    .os_clk(os_clk),
+    .os_addr(os_addr[15:4]),
+    .os_din(os_din),
+    .os_dout(os_dout),
+    .os_wea(os_wea),
+    .os_rst(os_rst),
+    .os_en(os_en)
   );
 
 endmodule
